@@ -4,6 +4,10 @@ title: "judgepanel: estimating LLM-judge accuracy without gold labels"
 type: software
 version: "0.1.0"
 date-released: "2026-08-05"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21809473
+    description: Zenodo concept DOI (all versions)
 license: MIT
 repository-code: "https://github.com/mohammadi-hadi/judgepanel"
 url: "https://github.com/mohammadi-hadi/judgepanel"

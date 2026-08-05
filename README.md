@@ -1,6 +1,7 @@
 # judgepanel
 
 [![CI](https://github.com/mohammadi-hadi/judgepanel/actions/workflows/ci.yml/badge.svg)](https://github.com/mohammadi-hadi/judgepanel/actions/workflows/ci.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21809473.svg)](https://doi.org/10.5281/zenodo.21809473)
 
 **Estimate how accurate your LLM judges are — without gold labels — and aggregate
 their verdicts better than majority vote.**
@@ -141,8 +142,13 @@ The suite checks statistical behaviour, not just plumbing: kappa against
 hand-computed tables, EM recovery on seeded synthetic panels, log-likelihood
 monotonicity, bootstrap coverage, and determinism.
 
-## Citation
+## Citing
 
-If you use judgepanel, please cite it (see `CITATION.cff`).
+Releases are archived on Zenodo. Cite the concept DOI
+[10.5281/zenodo.21809473](https://doi.org/10.5281/zenodo.21809473), which always
+resolves to the latest version; structured metadata is in
+[CITATION.cff](CITATION.cff).
 
-MIT license.
+## License
+
+MIT — see [LICENSE](LICENSE).

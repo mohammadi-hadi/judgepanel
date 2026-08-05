@@ -29,6 +29,7 @@ dependencies = ["numpy>=1.26"]
 [project.urls]
 Repository = "https://github.com/mohammadi-hadi/judgepanel"
 Issues = "https://github.com/mohammadi-hadi/judgepanel/issues"
+DOI = "https://doi.org/10.5281/zenodo.21809473"
 
 [project.optional-dependencies]
 dev = [
