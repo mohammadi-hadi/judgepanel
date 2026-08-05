@@ -23,7 +23,7 @@ Pure NumPy; no model calls; every fit deterministic.
 ## Install
 
 ```bash
-pip install git+https://github.com/mohammadi-hadi/judgepanel
+pip install judgepanel
 ```
 
 ## Sixty seconds
