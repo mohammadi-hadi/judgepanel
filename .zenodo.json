@@ -1,0 +1,25 @@
+{
+  "title": "judgepanel: estimating LLM-judge accuracy without gold labels",
+  "description": "Estimates each judge's confusion matrix, the class prevalence, and a posterior over every item's true label from a panel of imperfect judges labelling the same items, with no gold labels, via the Dawid-Skene model fitted by EM. Includes majority-vote baselines, Cohen's and Fleiss' kappa agreement diagnostics, bootstrap confidence intervals, and panel simulators for planning and failure-mode analysis. Validated on a real five-judge panel over 400 agent trajectories where estimated judge accuracies can be checked against construction-time gold labels, including an honest account of the correlated-judge failure mode.",
+  "creators": [
+    {"name": "Mohammadi, Hadi", "orcid": "0000-0003-0860-9200", "affiliation": "Utrecht University"}
+  ],
+  "license": "mit",
+  "upload_type": "software",
+  "version": "v0.1.0",
+  "keywords": [
+    "LLM-as-judge",
+    "Dawid-Skene",
+    "label aggregation",
+    "inter-rater agreement",
+    "evaluation",
+    "large language models"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/mohammadi-hadi/judgepanel",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
