@@ -1,6 +1,7 @@
 # judgepanel
 
 [![CI](https://github.com/mohammadi-hadi/judgepanel/actions/workflows/ci.yml/badge.svg)](https://github.com/mohammadi-hadi/judgepanel/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/judgepanel)](https://pypi.org/project/judgepanel/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21809473.svg)](https://doi.org/10.5281/zenodo.21809473)
 
 **Estimate how accurate your LLM judges are — without gold labels — and aggregate
