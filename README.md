@@ -1,12 +1,16 @@
+<div align="center">
+
 # judgepanel
 
 [![CI](https://github.com/mohammadi-hadi/judgepanel/actions/workflows/ci.yml/badge.svg)](https://github.com/mohammadi-hadi/judgepanel/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/judgepanel)](https://pypi.org/project/judgepanel/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21809473.svg)](https://doi.org/10.5281/zenodo.21809473)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Estimate how accurate your LLM judges are — without gold labels — and aggregate
-their verdicts better than majority vote.**
+*Estimate how accurate your LLM judges are — without gold labels — and aggregate their verdicts better than majority vote.*
+
+</div>
 
 When several imperfect judges label the same items, the disagreement pattern
 itself reveals who is reliable. judgepanel fits the classic Dawid–Skene model
