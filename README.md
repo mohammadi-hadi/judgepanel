@@ -148,6 +148,12 @@ The suite checks statistical behaviour, not just plumbing: kappa against
 hand-computed tables, EM recovery on seeded synthetic panels, log-likelihood
 monotonicity, bootstrap coverage, and determinism.
 
+## Part of evalstack
+
+[evalstack](https://github.com/mohammadi-hadi/evalstack) is the map of these
+eleven evaluation tools: what each one measures, what it found on real data,
+and the two chains that run end to end.
+
 ## Citing
 
 Releases are archived on Zenodo. Cite the concept DOI
