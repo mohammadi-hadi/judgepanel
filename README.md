@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-*Estimate how accurate your LLM judges are — without gold labels — and aggregate their verdicts better than majority vote.*
+*Estimate how accurate your LLM judges are without gold labels. On a real panel of 400 agent trajectories, posterior aggregation ties majority vote on accuracy (0.895 vs 0.897, one item apart).*
 
 </div>
 
