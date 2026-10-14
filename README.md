@@ -156,6 +156,8 @@ and the two chains that run end to end.
 
 ## Citing
 
+The accompanying paper, *Judging Without Gold: Gold-Free Estimation of LLM-Judge Accuracy and Its Failure Modes*, was accepted at the NeurIPS 2026 workshop *Can We Trust the Judge?* (JUDGe).
+
 Releases are archived on Zenodo. Cite the concept DOI
 [10.5281/zenodo.21809473](https://doi.org/10.5281/zenodo.21809473), which always
 resolves to the latest version; structured metadata is in
