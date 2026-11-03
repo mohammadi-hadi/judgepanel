@@ -9,6 +9,7 @@ studying failure modes such as correlated judges.
 """
 
 from judgepanel.agreement import cohen_kappa, fleiss_kappa, pairwise_cohen_kappa
+from judgepanel.anchor import AnchorAudit, AnchorCheck, anchor_audit, wilson_interval
 from judgepanel.diagnostics import (
     DependenceCheck,
     Tetrads,
@@ -35,6 +36,8 @@ __version__ = "0.1.1"
 
 __all__ = [
     "MISSING",
+    "AnchorAudit",
+    "AnchorCheck",
     "BootstrapResult",
     "DawidSkeneResult",
     "DependenceCheck",
@@ -44,6 +47,7 @@ __all__ = [
     "SimJudge",
     "Tetrads",
     "__version__",
+    "anchor_audit",
     "bivariate_residuals",
     "bootstrap_judges",
     "cohen_kappa",
@@ -61,5 +65,6 @@ __all__ = [
     "simulate_panel",
     "simulate_subtype_panel",
     "tetrads",
+    "wilson_interval",
     "write_labels_jsonl",
 ]
