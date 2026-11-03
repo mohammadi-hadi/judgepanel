@@ -4,14 +4,15 @@ A gold-free fit is a screening tool: it is cheap and usually close, but a
 group of judges that errs together can bias it without any warning from the
 fit itself. A few dozen randomly chosen items with known labels are enough to
 check it. For every judge and class, the anchor gives a direct estimate of the
-judge's accuracy with a Wilson interval; a gold-free estimate outside that
-interval is flagged.
+judge's accuracy with an exact (Clopper-Pearson) or Wilson interval; a
+gold-free estimate outside that interval is flagged.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from math import exp, lgamma, log
 from statistics import NormalDist
 
 import numpy as np
@@ -36,6 +37,62 @@ def wilson_interval(successes: int, trials: int, level: float = 0.95) -> tuple[f
     return (float(max(0.0, centre - half)), float(min(1.0, centre + half)))
 
 
+def _binomial_upper_tail(successes: int, trials: int, p: float) -> float:
+    """P(X >= successes) for X ~ Binomial(trials, p)."""
+    if p <= 0.0:
+        return 1.0 if successes <= 0 else 0.0
+    if p >= 1.0:
+        return 1.0
+    log_p, log_q = log(p), log(1.0 - p)
+    base = lgamma(trials + 1)
+    total = 0.0
+    for i in range(successes, trials + 1):
+        total += exp(
+            base - lgamma(i + 1) - lgamma(trials - i + 1) + i * log_p + (trials - i) * log_q
+        )
+    return min(1.0, total)
+
+
+def _solve_increasing(f: Callable[[float], float], target: float) -> float:
+    """The p in [0, 1] where the increasing function f crosses target (bisection)."""
+    lo, hi = 0.0, 1.0
+    for _ in range(60):
+        mid = (lo + hi) / 2.0
+        if f(mid) < target:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2.0
+
+
+def clopper_pearson_interval(
+    successes: int, trials: int, level: float = 0.95
+) -> tuple[float, float]:
+    """Exact (Clopper-Pearson) interval for a binomial proportion; (0, 1) with no trials.
+
+    Its coverage is at least ``level`` for every true proportion, which the
+    Wilson interval does not guarantee near 0 and 1. That matters for an audit
+    that runs many checks at a Bonferroni-corrected level, where the accuracies
+    being checked are often close to 1.
+    """
+    if trials < 0 or successes < 0 or successes > trials:
+        raise ValueError("need 0 <= successes <= trials")
+    if not 0.0 < level < 1.0:
+        raise ValueError("level must be between 0 and 1")
+    if trials == 0:
+        return (0.0, 1.0)
+    alpha = 1.0 - level
+    lower, upper = 0.0, 1.0
+    if successes > 0:
+        lower = _solve_increasing(lambda p: _binomial_upper_tail(successes, trials, p), alpha / 2.0)
+    if successes < trials:
+        failures = trials - successes
+        upper = 1.0 - _solve_increasing(
+            lambda q: _binomial_upper_tail(failures, trials, q), alpha / 2.0
+        )
+    return (float(lower), float(upper))
+
+
 @dataclass(frozen=True)
 class AnchorCheck:
     """One judge, one class: gold-free estimate against the anchor."""
@@ -56,6 +113,7 @@ class AnchorAudit:
     level: float
     n_anchor: int
     checks: tuple[AnchorCheck, ...]
+    method: str = "exact"
 
     @property
     def n_flagged(self) -> int:
@@ -71,6 +129,7 @@ def anchor_audit(
     gold: Mapping[str, str],
     *,
     level: float = 0.95,
+    method: str = "exact",
 ) -> AnchorAudit:
     """Compare each judge's gold-free accuracy with its accuracy on gold items.
 
@@ -78,10 +137,15 @@ def anchor_audit(
     panel are ignored. For judge ``j`` and true class ``k`` the anchor estimate
     is the share of gold items of class ``k`` that ``j`` labeled ``k``, and
     the check is flagged when the fitted ``confusion[j, k, k]`` lies outside
-    the Wilson interval. With ``J`` judges and ``K`` classes there are
-    ``J * K`` checks, so expect about ``(1 - level) * J * K`` false flags when
-    the fit is right; the ``level`` can be raised to control that.
+    the interval: exact Clopper-Pearson by default, or ``method="wilson"``.
+    With ``J`` judges and ``K`` classes there are ``J * K`` checks; to keep
+    the chance of any false flag near ``alpha``, use the Bonferroni level
+    ``1 - alpha / (J * K)``. The Wilson interval undercovers when accuracies
+    are near 0 or 1, so at such levels it flags correct fits too often.
     """
+    if method not in ("exact", "wilson"):
+        raise ValueError("method must be 'exact' or 'wilson'")
+    interval_fn = clopper_pearson_interval if method == "exact" else wilson_interval
     if panel.judges != fit.judges or panel.classes != fit.classes:
         raise ValueError("the fit was not made on a panel with these judges and classes")
     class_index = {c: k for k, c in enumerate(panel.classes)}
@@ -98,7 +162,7 @@ def anchor_audit(
             sel = (truth == k) & (labels != MISSING)
             n = int(sel.sum())
             hits = int(np.sum(labels[sel] == k))
-            interval = wilson_interval(hits, n, level)
+            interval = interval_fn(hits, n, level)
             estimate = float(fit.confusion[j, k, k])
             checks.append(
                 AnchorCheck(
@@ -111,7 +175,7 @@ def anchor_audit(
                     flagged=n > 0 and not (interval[0] <= estimate <= interval[1]),
                 )
             )
-    return AnchorAudit(level=level, n_anchor=len(rows), checks=tuple(checks))
+    return AnchorAudit(level=level, n_anchor=len(rows), checks=tuple(checks), method=method)
 
 
 @dataclass(frozen=True)

@@ -14,6 +14,7 @@ from judgepanel.anchor import (
     AnchorCheck,
     RectifiedEstimates,
     anchor_audit,
+    clopper_pearson_interval,
     rectified_estimates,
     wilson_interval,
 )
@@ -58,6 +59,7 @@ __all__ = [
     "anchor_audit",
     "bivariate_residuals",
     "bootstrap_judges",
+    "clopper_pearson_interval",
     "cohen_kappa",
     "dependence_check",
     "drop_one_shifts",

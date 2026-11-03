@@ -3,7 +3,14 @@
 import numpy as np
 import pytest
 
-from judgepanel import SimJudge, anchor_audit, fit_dawid_skene, simulate_panel, wilson_interval
+from judgepanel import (
+    SimJudge,
+    anchor_audit,
+    clopper_pearson_interval,
+    fit_dawid_skene,
+    simulate_panel,
+    wilson_interval,
+)
 
 
 def test_wilson_interval_known_values() -> None:
@@ -20,6 +27,34 @@ def test_wilson_interval_validates() -> None:
         wilson_interval(3, 2)
     with pytest.raises(ValueError):
         wilson_interval(1, 2, level=1.5)
+
+
+def test_clopper_pearson_interval_known_values() -> None:
+    # Reference values from the beta-quantile form of the exact interval.
+    lo, hi = clopper_pearson_interval(5, 10)
+    assert lo == pytest.approx(0.18709, abs=1e-4)
+    assert hi == pytest.approx(0.81291, abs=1e-4)
+    assert clopper_pearson_interval(0, 10) == (0.0, pytest.approx(0.30850, abs=1e-4))
+    assert clopper_pearson_interval(10, 10) == (pytest.approx(0.69150, abs=1e-4), 1.0)
+    assert clopper_pearson_interval(0, 0) == (0.0, 1.0)
+    with pytest.raises(ValueError):
+        clopper_pearson_interval(3, 2)
+
+
+def test_clopper_pearson_covers_where_wilson_does_not() -> None:
+    # Exact coverage at p = 0.98, n = 20, level 0.995: a Wilson interval
+    # undercovers near the boundary, the exact one never does.
+    from math import comb
+
+    p, n, level = 0.98, 20, 0.995
+    weights = [comb(n, x) * p**x * (1 - p) ** (n - x) for x in range(n + 1)]
+
+    def coverage(interval) -> float:  # type: ignore[no-untyped-def]
+        covered = [interval(x, n, level)[0] <= p <= interval(x, n, level)[1] for x in range(n + 1)]
+        return sum(w for w, ok in zip(weights, covered, strict=True) if ok)
+
+    assert coverage(clopper_pearson_interval) >= level
+    assert coverage(wilson_interval) < level
 
 
 def _panel_and_gold() -> tuple:
