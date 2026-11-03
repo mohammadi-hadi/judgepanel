@@ -6,7 +6,6 @@
   ],
   "license": "mit",
   "upload_type": "software",
-  "version": "v0.1.0",
   "keywords": [
     "LLM-as-judge",
     "Dawid-Skene",
