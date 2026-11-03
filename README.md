@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/judgepanel)](https://pypi.org/project/judgepanel/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21809473.svg)](https://doi.org/10.5281/zenodo.21809473)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/mohammadi-hadi/judgepanel/blob/main/LICENSE)
 
 *Estimate how accurate your LLM judges are without gold labels. On a real panel of 400 agent trajectories, posterior aggregation ties majority vote on accuracy (0.895 vs 0.897, one item apart).*
 
@@ -161,8 +161,8 @@ The accompanying paper, *Judging Without Gold: Gold-Free Estimation of LLM-Judge
 Releases are archived on Zenodo. Cite the concept DOI
 [10.5281/zenodo.21809473](https://doi.org/10.5281/zenodo.21809473), which always
 resolves to the latest version; structured metadata is in
-[CITATION.cff](CITATION.cff).
+[CITATION.cff](https://github.com/mohammadi-hadi/judgepanel/blob/main/CITATION.cff).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/mohammadi-hadi/judgepanel/blob/main/LICENSE).
