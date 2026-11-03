@@ -15,6 +15,7 @@ from judgepanel import SimJudge, fit_dawid_skene, majority_vote, simulate_panel
 
 BASE_SEED = 20260905
 R_REPS = 300
+BUDGET = 2520
 
 ARCHETYPES = [
     (0.90, 0.95),
@@ -125,11 +126,15 @@ def e2_copycat_bias() -> list[dict[str, object]]:
 
 
 def e5_label_budget() -> list[dict[str, object]]:
-    """Fixed budget of 2,000 labels: many judges on few items, or few on many?"""
+    """Fixed budget of 2,520 labels: many judges on few items, or few on many?
+
+    2,520 is divisible by every panel size from 3 to 10, so each panel shape
+    spends exactly the same budget.
+    """
     rows: list[dict[str, object]] = []
-    for step, m in enumerate((3, 4, 5, 8, 10)):
+    for step, m in enumerate(range(3, 11)):
         judges = judges_for(m)
-        n = 2000 // m
+        n = BUDGET // m
         maes = [
             fit_errors(judges, n, 0.3, seed=BASE_SEED + 200_000 + 1000 * step + r)["mae"]
             for r in range(R_REPS)
@@ -153,6 +158,7 @@ def main() -> None:
         "archetypes": ARCHETYPES,
         "e1_recovery": e1_recovery_grid(),
         "e2_copycat": e2_copycat_bias(),
+        "budget": BUDGET,
         "e5_budget": e5_label_budget(),
     }
     out.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
