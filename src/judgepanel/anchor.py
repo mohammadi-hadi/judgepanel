@@ -34,7 +34,10 @@ def wilson_interval(successes: int, trials: int, level: float = 0.95) -> tuple[f
     denominator = 1.0 + z * z / trials
     centre = (p + z * z / (2.0 * trials)) / denominator
     half = z * np.sqrt(p * (1.0 - p) / trials + z * z / (4.0 * trials * trials)) / denominator
-    return (float(max(0.0, centre - half)), float(min(1.0, centre + half)))
+    # At 0 or all successes the bound is exactly 0 or 1; rounding can leave 1e-17.
+    lower = 0.0 if successes == 0 else max(0.0, centre - half)
+    upper = 1.0 if successes == trials else min(1.0, centre + half)
+    return (float(lower), float(upper))
 
 
 def _binomial_upper_tail(successes: int, trials: int, p: float) -> float:
