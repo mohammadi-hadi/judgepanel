@@ -129,3 +129,40 @@ def test_binary_helpers_reject_multiclass() -> None:
     result = fit_dawid_skene(panel)
     with pytest.raises(ValueError, match="binary"):
         result.sensitivity("class-0")
+
+
+def test_init_must_be_a_probability_matrix() -> None:
+    panel, _ = simulate_panel(FIVE_JUDGES, 50, seed=1)
+    with pytest.raises(ValueError, match="shape"):
+        fit_dawid_skene(panel, init=np.full((10, 2), 0.5))
+    with pytest.raises(ValueError, match="probability"):
+        fit_dawid_skene(panel, init=np.full((50, 2), 0.7))
+
+
+def test_init_from_the_truth_reaches_the_same_optimum() -> None:
+    panel, truth = simulate_panel(FIVE_JUDGES, 800, prevalence=0.3, seed=2)
+    default = fit_dawid_skene(panel)
+    start = np.eye(2)[truth]
+    seeded = fit_dawid_skene(panel, init=start)
+    assert seeded.log_likelihood == pytest.approx(default.log_likelihood, abs=1e-3)
+    assert np.allclose(seeded.confusion, default.confusion, atol=1e-3)
+
+
+def test_multistart_finds_one_optimum_on_a_well_posed_panel() -> None:
+    from judgepanel import multistart_dawid_skene
+
+    panel, _ = simulate_panel(FIVE_JUDGES, 600, prevalence=0.4, seed=3)
+    optima = multistart_dawid_skene(panel, n_starts=15, seed=4)
+    assert len(optima) == 1
+    assert optima[0].count == 16
+    assert optima[0].fit.log_likelihood == pytest.approx(
+        fit_dawid_skene(panel).log_likelihood, abs=1e-3
+    )
+
+
+def test_multistart_rejects_negative_starts() -> None:
+    from judgepanel import multistart_dawid_skene
+
+    panel, _ = simulate_panel(FIVE_JUDGES, 30, seed=1)
+    with pytest.raises(ValueError):
+        multistart_dawid_skene(panel, n_starts=-1)

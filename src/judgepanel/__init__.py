@@ -9,7 +9,7 @@ studying failure modes such as correlated judges.
 """
 
 from judgepanel.agreement import cohen_kappa, fleiss_kappa, pairwise_cohen_kappa
-from judgepanel.em import DawidSkeneResult, fit_dawid_skene
+from judgepanel.em import DawidSkeneResult, LocalOptimum, fit_dawid_skene, multistart_dawid_skene
 from judgepanel.io import read_panel_jsonl, write_labels_jsonl
 from judgepanel.panel import MISSING, Panel
 from judgepanel.simulate import (
@@ -27,6 +27,7 @@ __all__ = [
     "MISSING",
     "BootstrapResult",
     "DawidSkeneResult",
+    "LocalOptimum",
     "MajorityResult",
     "Panel",
     "SimJudge",
@@ -36,6 +37,7 @@ __all__ = [
     "fit_dawid_skene",
     "fleiss_kappa",
     "majority_vote",
+    "multistart_dawid_skene",
     "pairwise_cohen_kappa",
     "read_panel_jsonl",
     "simulate_confusion_panel",

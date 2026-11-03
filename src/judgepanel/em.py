@@ -126,6 +126,7 @@ def fit_dawid_skene(
     max_iter: int = 1000,
     tol: float = 1e-7,
     smoothing: float = 0.01,
+    init: FloatArray | None = None,
 ) -> DawidSkeneResult:
     """Fit the Dawid-Skene model to a panel by EM.
 
@@ -135,6 +136,8 @@ def fit_dawid_skene(
     probabilities strictly positive. The fit is deterministic.
 
     ``tol`` is the per-item change in log-likelihood below which EM stops.
+    ``init`` replaces the majority-vote start with a given (items x classes)
+    posterior, as used by :func:`multistart_dawid_skene`.
     """
     if max_iter < 1:
         raise ValueError("max_iter must be at least 1")
@@ -153,12 +156,19 @@ def fit_dawid_skene(
     if not bool(observed.any()):
         raise ValueError("panel has no observed labels")
 
-    posterior = np.zeros((n_items, n_classes), dtype=np.float64)
-    for k in range(n_classes):
-        posterior[:, k] = (labels == k).sum(axis=1)
-    votes = posterior.sum(axis=1, keepdims=True)
-    with np.errstate(invalid="ignore"):
-        posterior = np.where(votes > 0, posterior / votes, 1.0 / n_classes)
+    if init is not None:
+        posterior = np.asarray(init, dtype=np.float64)
+        if posterior.shape != (n_items, n_classes):
+            raise ValueError("init must have shape (n_items, n_classes)")
+        if np.any(posterior < 0) or not np.allclose(posterior.sum(axis=1), 1.0):
+            raise ValueError("init rows must be probability vectors")
+    else:
+        posterior = np.zeros((n_items, n_classes), dtype=np.float64)
+        for k in range(n_classes):
+            posterior[:, k] = (labels == k).sum(axis=1)
+        votes = posterior.sum(axis=1, keepdims=True)
+        with np.errstate(invalid="ignore"):
+            posterior = np.where(votes > 0, posterior / votes, 1.0 / n_classes)
 
     log_likelihood = -np.inf
     converged = False
@@ -200,3 +210,45 @@ def fit_dawid_skene(
         n_iter=n_iter,
         converged=converged,
     )
+
+
+@dataclass(frozen=True)
+class LocalOptimum:
+    """One distinct EM solution found by :func:`multistart_dawid_skene`."""
+
+    fit: DawidSkeneResult
+    count: int
+
+
+def multistart_dawid_skene(
+    panel: Panel,
+    *,
+    n_starts: int = 50,
+    seed: int = 20260905,
+    decimals: int = 3,
+    max_iter: int = 1000,
+    tol: float = 1e-7,
+    smoothing: float = 0.01,
+) -> list[LocalOptimum]:
+    """Run EM from the majority-vote start and from random starts.
+
+    Random starts draw each item's initial posterior from a flat Dirichlet.
+    Solutions are grouped by log-likelihood rounded to ``decimals`` places
+    (after the usual label-switch correction) and returned best first, with
+    how many of the ``n_starts + 1`` runs reached each. One group means EM's
+    answer does not depend on where it starts; several groups with close
+    likelihoods mean the data do not pin the solution down.
+    """
+    if n_starts < 0:
+        raise ValueError("n_starts must be non-negative")
+    rng = np.random.default_rng(seed)
+    groups: dict[float, list[DawidSkeneResult]] = {}
+    inits: list[FloatArray | None] = [None]
+    inits += [rng.dirichlet(np.ones(panel.n_classes), size=panel.n_items) for _ in range(n_starts)]
+    for init in inits:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            fit = fit_dawid_skene(panel, max_iter=max_iter, tol=tol, smoothing=smoothing, init=init)
+        groups.setdefault(round(fit.log_likelihood, decimals), []).append(fit)
+    ordered = sorted(groups.items(), key=lambda kv: -kv[0])
+    return [LocalOptimum(fit=fits[0], count=len(fits)) for _, fits in ordered]
