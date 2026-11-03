@@ -9,7 +9,14 @@ studying failure modes such as correlated judges.
 """
 
 from judgepanel.agreement import cohen_kappa, fleiss_kappa, pairwise_cohen_kappa
-from judgepanel.anchor import AnchorAudit, AnchorCheck, anchor_audit, wilson_interval
+from judgepanel.anchor import (
+    AnchorAudit,
+    AnchorCheck,
+    RectifiedEstimates,
+    anchor_audit,
+    rectified_estimates,
+    wilson_interval,
+)
 from judgepanel.diagnostics import (
     DependenceCheck,
     Tetrads,
@@ -44,6 +51,7 @@ __all__ = [
     "LocalOptimum",
     "MajorityResult",
     "Panel",
+    "RectifiedEstimates",
     "SimJudge",
     "Tetrads",
     "__version__",
@@ -60,6 +68,7 @@ __all__ = [
     "pairwise_cohen_kappa",
     "pattern_g2",
     "read_panel_jsonl",
+    "rectified_estimates",
     "simulate_confusion_panel",
     "simulate_from_fit",
     "simulate_panel",

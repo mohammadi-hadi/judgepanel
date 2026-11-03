@@ -70,3 +70,49 @@ def test_anchor_audit_with_no_gold_of_a_class_does_not_flag_it() -> None:
     faulty_checks = [c for c in audit.checks if c.true_class == "faulty"]
     assert all(c.n == 0 and c.anchor is None and not c.flagged for c in faulty_checks)
     assert np.isclose(sum(c.n for c in audit.checks if c.judge == "a"), len(clean_only))
+
+
+def test_rectified_estimates_equal_gold_when_every_item_is_an_anchor() -> None:
+    from judgepanel import rectified_estimates
+
+    panel, gold = _panel_and_gold()
+    fit = fit_dawid_skene(panel)
+    est = rectified_estimates(panel, fit, gold, positive="faulty")
+    truth = np.array([gold[item] == "faulty" for item in panel.items])
+    flags = panel.labels == panel.classes.index("faulty")
+    assert est.prevalence == pytest.approx(truth.mean())
+    for j, judge in enumerate(panel.judges):
+        assert est.sensitivity[judge] == pytest.approx(flags[truth, j].mean())
+        assert est.specificity[judge] == pytest.approx((~flags[~truth, j]).mean())
+
+
+def test_rectified_estimates_repair_a_wrong_fit_on_average() -> None:
+    from judgepanel import rectified_estimates
+
+    panel, gold = _panel_and_gold()
+    fit = fit_dawid_skene(panel)
+    # Push every posterior towards "clean": the gold-free prevalence is badly off.
+    posterior = fit.posterior.copy()
+    posterior[:, 1] *= 0.5
+    posterior[:, 0] = 1 - posterior[:, 1]
+    wrong = type(fit)(**{**fit.__dict__, "posterior": posterior})
+    truth = np.array([gold[item] == "faulty" for item in panel.items])
+    rng = np.random.default_rng(0)
+    prevalences = []
+    for _ in range(300):
+        chosen = rng.choice(panel.n_items, size=60, replace=False)
+        sample = {panel.items[i]: gold[panel.items[i]] for i in chosen}
+        prevalences.append(rectified_estimates(panel, wrong, sample, positive="faulty").prevalence)
+    assert abs(float(posterior[:, 1].mean()) - truth.mean()) > 0.15
+    assert float(np.mean(prevalences)) == pytest.approx(truth.mean(), abs=0.01)
+
+
+def test_rectified_estimates_validate() -> None:
+    from judgepanel import rectified_estimates
+
+    panel, gold = _panel_and_gold()
+    fit = fit_dawid_skene(panel)
+    with pytest.raises(ValueError, match="positive"):
+        rectified_estimates(panel, fit, gold, positive="maybe")
+    with pytest.raises(ValueError, match="no gold"):
+        rectified_estimates(panel, fit, {"nope": "clean"}, positive="faulty")
