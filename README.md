@@ -99,12 +99,15 @@ Three honest findings:
    its estimated specificity is 0.000 — matching the truth — with no gold
    label in sight. The judge quality *ranking* is right across the board, and
    the production-default outcome judge is estimated within 0.04.
-2. **Correlated judges inflate their own estimates.** Self-consistency is the
-   step judge sampled three times, and the two agree at kappa 0.96. Dawid–Skene
-   assumes conditionally independent judges, so this pair drags the latent
-   truth toward its shared verdicts: both get overestimated by up to +0.14,
-   and estimated prevalence drops to 0.645 against a true 0.750. The library
-   prints the kappa matrix precisely so you check this before believing the fit.
+2. **A coalition captures the latent class.** The step judge and its
+   self-consistency ensemble (kappa 0.96) are both overestimated by up to
+   +0.14, and estimated prevalence drops to 0.645 against a true 0.750. The
+   step judge is fitted as nearly perfect, and the fitted prevalence is its
+   positive rate. Copying is not the main cause: one fault type (a promise
+   invented in the reply) is missed by the rule checker and the 14B pair
+   alike, and resampling the judges independently *within fault types*
+   reproduces the whole bias. The library prints the kappa matrix, and the
+   checks below, so you look before believing the fit.
 3. **No aggregation recovers what every judge misses.** Faults that leave the
    final answer correct are invisible to the whole panel, so posterior
    aggregation (0.895 accuracy) cannot beat majority (0.897) here. Weighted
@@ -122,6 +125,34 @@ Three honest findings:
   expected operating points to see the estimation error you should expect
   before you rely on the numbers.
 
+## Checking a fit
+
+A fitted judge that looks nearly perfect is a warning sign, not good news:
+its residuals with every other judge are zero by construction, so the
+classical bivariate-residual check cannot see the problem. Two more things
+help.
+
+```python
+from judgepanel import anchor_audit, dependence_check, rectified_estimates
+
+check = dependence_check(panel, n_boot=200)   # parametric bootstrap
+check.g2_p, check.tetrad_p, check.drop_one_max_p, check.bvr_max_p
+
+gold = {"case-0017": "faulty", ...}           # 20 to 50 random items with known labels
+audit = anchor_audit(panel, result, gold, level=1 - 0.05 / (2 * panel.n_judges))
+audit.flagged()                                # judge/class estimates the anchor rejects
+rectified_estimates(panel, result, gold, positive="faulty")
+```
+
+`dependence_check` calibrates four statistics (largest bivariate residual,
+pattern G², vanishing tetrads, and the shift when one judge is left out and
+the panel refitted) against panels drawn from the fitted model. A rejection
+means the panel holds coalitions that disagree about the latent class;
+silence does not mean the estimates are right, because a blind spot shared by
+the judges that win leaves no trace in the verdicts. A small random gold
+anchor does see it, and `rectified_estimates` uses the anchor to correct the
+fit (prediction-powered inference).
+
 ## API
 
 | call | what it does |
@@ -131,7 +162,13 @@ Three honest findings:
 | `bootstrap_judges(panel, n_boot=200)` | percentile CIs for judge parameters |
 | `majority_vote(panel)` | baseline aggregation, ties made explicit |
 | `cohen_kappa`, `fleiss_kappa`, `pairwise_cohen_kappa` | agreement diagnostics |
-| `simulate_panel`, `simulate_confusion_panel` | synthetic panels with known truth |
+| `multistart_dawid_skene(panel, n_starts=50)` | EM from random starts, local optima grouped |
+| `dependence_check(panel, n_boot=200)` | bootstrap-calibrated checks of conditional independence |
+| `bivariate_residuals`, `pattern_g2`, `tetrads`, `drop_one_shifts` | the statistics behind it |
+| `anchor_audit(panel, fit, gold)` | Wilson-interval audit of a fit against gold items |
+| `rectified_estimates(panel, fit, gold, positive=...)` | prevalence, sensitivity, specificity corrected by a gold anchor |
+| `simulate_panel`, `simulate_confusion_panel`, `simulate_subtype_panel` | synthetic panels with known truth |
+| `simulate_from_fit(fit)` | panels drawn from a fitted model |
 
 CLI: `judgepanel fit`, `judgepanel agree`, `judgepanel simulate`,
 `judgepanel version` (each supports `--json`).
@@ -140,7 +177,7 @@ CLI: `judgepanel fit`, `judgepanel agree`, `judgepanel simulate`,
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e ".[dev]"
-.venv/bin/pytest          # 52 tests: hand-computed values, seeded recovery, CLI
+.venv/bin/pytest          # 81 tests: hand-computed values, seeded recovery, CLI
 .venv/bin/ruff check src tests && .venv/bin/mypy src
 ```
 
