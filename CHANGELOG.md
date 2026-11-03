@@ -5,7 +5,8 @@
 - Gold-free checks of conditional independence: bivariate residuals, pattern
   G², vanishing tetrads and a leave-one-judge-out refit, each calibrated by a
   parametric bootstrap from the fitted model (`dependence_check`).
-- Gold anchors: Wilson-interval audit of a fit (`anchor_audit`) and
+- Gold anchors: audit of a fit with exact Clopper-Pearson intervals, or
+  Wilson intervals on request (`anchor_audit`, `clopper_pearson_interval`), and
   prediction-powered estimates of prevalence, sensitivity and specificity
   (`rectified_estimates`).
 - EM from a given posterior (`fit_dawid_skene(init=...)`) and from many random
