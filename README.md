@@ -177,7 +177,7 @@ CLI: `judgepanel fit`, `judgepanel agree`, `judgepanel simulate`,
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e ".[dev]"
-.venv/bin/pytest          # 81 tests: hand-computed values, seeded recovery, CLI
+.venv/bin/pytest          # 83 tests: hand-computed values, seeded recovery, CLI
 .venv/bin/ruff check src tests && .venv/bin/mypy src
 ```
 
