@@ -12,7 +12,12 @@ from judgepanel.agreement import cohen_kappa, fleiss_kappa, pairwise_cohen_kappa
 from judgepanel.em import DawidSkeneResult, fit_dawid_skene
 from judgepanel.io import read_panel_jsonl, write_labels_jsonl
 from judgepanel.panel import MISSING, Panel
-from judgepanel.simulate import SimJudge, simulate_confusion_panel, simulate_panel
+from judgepanel.simulate import (
+    SimJudge,
+    simulate_confusion_panel,
+    simulate_panel,
+    simulate_subtype_panel,
+)
 from judgepanel.uncertainty import BootstrapResult, bootstrap_judges
 from judgepanel.vote import MajorityResult, majority_vote
 
@@ -35,5 +40,6 @@ __all__ = [
     "read_panel_jsonl",
     "simulate_confusion_panel",
     "simulate_panel",
+    "simulate_subtype_panel",
     "write_labels_jsonl",
 ]

@@ -149,3 +149,62 @@ def simulate_confusion_panel(
         classes=class_names,
     )
     return panel, truth
+
+
+def simulate_subtype_panel(
+    sensitivity: FloatArray,
+    specificity: FloatArray,
+    subtype_shares: FloatArray,
+    n_items: int,
+    *,
+    prevalence: float = 0.5,
+    seed: int | None = None,
+    classes: tuple[str, str] = ("clean", "faulty"),
+    judge_names: Sequence[str] | None = None,
+) -> tuple[Panel, IntArray, IntArray]:
+    """Simulate a binary panel whose positives come in subtypes.
+
+    ``sensitivity`` has shape (judges, subtypes): judge ``j`` flags a positive
+    item of subtype ``s`` with probability ``sensitivity[j, s]``.
+    ``specificity`` has one entry per judge. Judges err independently given
+    the subtype, so they are dependent given the binary class whenever their
+    sensitivities vary across subtypes in the same direction, which is how a
+    shared blind spot arises. Returns the panel, the true class indices, and
+    the subtype of each item (-1 for negatives).
+    """
+    sens = np.asarray(sensitivity, dtype=np.float64)
+    spec = np.asarray(specificity, dtype=np.float64)
+    shares = np.asarray(subtype_shares, dtype=np.float64)
+    if sens.ndim != 2 or spec.shape != (sens.shape[0],) or shares.shape != (sens.shape[1],):
+        raise ValueError(
+            "need sensitivity (judges, subtypes), specificity (judges,) and shares (subtypes,)"
+        )
+    if not np.isclose(shares.sum(), 1.0) or np.any(shares < 0):
+        raise ValueError("subtype_shares must be a probability vector")
+    if np.any((sens < 0) | (sens > 1)) or np.any((spec < 0) | (spec > 1)):
+        raise ValueError("probabilities must be in [0, 1]")
+    if not 0.0 <= prevalence <= 1.0:
+        raise ValueError("prevalence must be in [0, 1]")
+    n_judges = sens.shape[0]
+    if judge_names is not None:
+        names = tuple(judge_names)
+    else:
+        names = tuple(f"judge-{j}" for j in range(n_judges))
+    if len(names) != n_judges:
+        raise ValueError("judge_names must match the number of judges")
+    rng = np.random.default_rng(seed)
+    truth = np.asarray(rng.random(n_items) < prevalence, dtype=np.int64)
+    subtype = np.where(truth == 1, rng.choice(shares.size, size=n_items, p=shares), -1)
+    flag_prob = np.where(
+        truth[:, None] == 1,
+        sens[:, np.maximum(subtype, 0)].T,
+        1.0 - spec[None, :],
+    )
+    labels = np.asarray(rng.random((n_items, n_judges)) < flag_prob, dtype=np.int64)
+    panel = Panel(
+        labels=labels,
+        items=tuple(f"item-{i:05d}" for i in range(n_items)),
+        judges=names,
+        classes=classes,
+    )
+    return panel, truth, subtype.astype(np.int64)

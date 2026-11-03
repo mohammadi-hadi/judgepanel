@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from judgepanel import MISSING
+from judgepanel import MISSING, simulate_subtype_panel
 from judgepanel.simulate import SimJudge, simulate_confusion_panel, simulate_panel
 
 
@@ -71,3 +71,25 @@ def test_confusion_panel_validation() -> None:
         simulate_confusion_panel(good, np.array([0.5, 0.3, 0.2]), 10, seed=1)
     with pytest.raises(ValueError, match="names must match"):
         simulate_confusion_panel(good, np.array([0.5, 0.5]), 10, seed=1, judge_names=("a", "b"))
+
+
+def test_subtype_simulator_shapes_and_rates() -> None:
+    sens = np.array([[0.9, 0.1], [0.8, 0.8], [0.6, 0.6]])
+    spec = np.array([0.95, 0.9, 0.85])
+    panel, truth, subtype = simulate_subtype_panel(
+        sens, spec, np.array([0.75, 0.25]), 100_000, prevalence=0.5, seed=8
+    )
+    assert panel.labels.shape == (100_000, 3)
+    assert np.all(subtype[truth == 0] == -1)
+    assert set(np.unique(subtype[truth == 1])) == {0, 1}
+    assert np.mean(subtype[truth == 1] == 1) == pytest.approx(0.25, abs=0.01)
+    hidden = (truth == 1) & (subtype == 1)
+    assert np.mean(panel.labels[hidden, 0]) == pytest.approx(0.1, abs=0.01)
+    assert np.mean(panel.labels[truth == 0, 2]) == pytest.approx(0.15, abs=0.01)
+
+
+def test_subtype_simulator_validates_inputs() -> None:
+    with pytest.raises(ValueError, match="probability vector"):
+        simulate_subtype_panel(np.array([[0.9, 0.1]]), np.array([0.9]), np.array([0.5, 0.6]), 10)
+    with pytest.raises(ValueError, match="need sensitivity"):
+        simulate_subtype_panel(np.array([0.9]), np.array([0.9]), np.array([1.0]), 10)
