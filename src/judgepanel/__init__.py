@@ -16,7 +16,7 @@ from judgepanel.simulate import SimJudge, simulate_confusion_panel, simulate_pan
 from judgepanel.uncertainty import BootstrapResult, bootstrap_judges
 from judgepanel.vote import MajorityResult, majority_vote
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "MISSING",

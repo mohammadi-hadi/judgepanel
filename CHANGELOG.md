@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 - 2026-11-03
+
+- The README no longer claims the panel beats majority vote: on the real
+  five-judge panel, posterior aggregation ties it (0.895 vs 0.897).
+- The accompanying paper is described as a working paper.
+- README links are absolute so they work on PyPI, and the package metadata
+  gains status, audience, licence and topic classifiers. No behaviour changed.
+
 ## 0.1.0 - 2026-08-05
 
 First release.
