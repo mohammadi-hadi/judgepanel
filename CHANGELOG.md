@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 - 2026-11-17
 
 - Gold-free checks of conditional independence: bivariate residuals, pattern
   G², vanishing tetrads and a leave-one-judge-out refit, each calibrated by a
